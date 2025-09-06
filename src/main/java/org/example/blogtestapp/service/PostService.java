@@ -190,7 +190,6 @@ public class PostService {
      */
     @Transactional(readOnly = true)
     public List<PostSummaryResponse> fullTextSearch(String searchQuery) {
-        System.out.println("searchQuery = " + searchQuery);
         return postRepository.fullTextSearch(searchQuery)
                 .stream()
                 .map(this::mapToPostSummaryResponse)
