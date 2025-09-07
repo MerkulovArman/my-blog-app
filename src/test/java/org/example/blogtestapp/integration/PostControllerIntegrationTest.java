@@ -1,23 +1,16 @@
 package org.example.blogtestapp.integration;
 
-import org.example.blogtestapp.TestcontainersConfiguration;
 import org.example.blogtestapp.dto.CreatePostRequest;
 import org.example.blogtestapp.dto.PostResponse;
 import org.example.blogtestapp.dto.PostSummaryResponse;
 import org.example.blogtestapp.entity.Post;
 import org.example.blogtestapp.entity.User;
-import org.example.blogtestapp.repository.PostRepository;
-import org.example.blogtestapp.repository.UserRepository;
 import org.example.blogtestapp.service.PostService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,21 +22,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Интеграционные тесты для PostController
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
-@ActiveProfiles("test")
-class PostControllerIntegrationTest {
+class PostControllerIntegrationTest extends AbstractIntegrationTest {
 
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    @Autowired
-    private PostRepository postRepository;
     @Autowired
     private PostService postService;
-
-    @Autowired
-    private UserRepository userRepository;
 
     private String testUsername = "testauthor";
     private User testUser;

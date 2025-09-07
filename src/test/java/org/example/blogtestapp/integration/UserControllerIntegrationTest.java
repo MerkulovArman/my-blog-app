@@ -1,18 +1,13 @@
 package org.example.blogtestapp.integration;
 
-import org.example.blogtestapp.TestcontainersConfiguration;
 import org.example.blogtestapp.dto.CreateUserRequest;
 import org.example.blogtestapp.dto.UserResponse;
 import org.example.blogtestapp.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Map;
 
@@ -21,13 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Интеграционные тесты для UserController
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(TestcontainersConfiguration.class)
-@ActiveProfiles("test")
-class UserControllerIntegrationTest {
-
-    @Autowired
-    private TestRestTemplate restTemplate;
+class UserControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;

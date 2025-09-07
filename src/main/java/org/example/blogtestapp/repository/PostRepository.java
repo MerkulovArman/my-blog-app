@@ -46,9 +46,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     /**
      * Полнотекстовый поиск постов с использованием PostgreSQL tsvector
      */
-    @Query(value = "SELECT * FROM posts p " +
-                   "WHERE p.is_published = true " +
-            "AND p.search_vector @@ to_tsquery('russian', :searchQuery) ORDER BY ts_rank(p.search_vector, to_tsquery('russian', :searchQuery)) DESC",
+    @Query(value = "SELECT * FROM posts p WHERE p.is_published = true " +
+            "AND p.search_vector @@ to_tsquery('russian', :searchQuery) " +
+            "ORDER BY ts_rank(p.search_vector, to_tsquery('russian', :searchQuery)) DESC",
 //                   "AND p.search_vector @@ plainto_tsquery('russian', :searchQuery) " +
 //                   "ORDER BY ts_rank(p.search_vector, plainto_tsquery('russian', :searchQuery)) DESC",
            nativeQuery = true)

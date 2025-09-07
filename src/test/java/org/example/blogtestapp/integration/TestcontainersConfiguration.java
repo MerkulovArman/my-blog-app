@@ -1,4 +1,4 @@
-package org.example.blogtestapp;
+package org.example.blogtestapp.integration;
 
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;

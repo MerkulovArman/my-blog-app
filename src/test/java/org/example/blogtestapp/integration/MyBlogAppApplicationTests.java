@@ -1,9 +1,7 @@
-package org.example.blogtestapp;
+package org.example.blogtestapp.integration;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.testcontainers.containers.PostgreSQLContainer;
 
 import java.sql.DriverManager;
@@ -11,13 +9,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-@Import(TestcontainersConfiguration.class)
-@SpringBootTest
-class MyBlogAppApplicationTests {
+class MyBlogAppApplicationTests extends AbstractIntegrationTest {
 
     @Autowired
     private PostgreSQLContainer postgres;
-
 
     @Test
     void contextLoads() {
@@ -31,6 +26,5 @@ class MyBlogAppApplicationTests {
         assert resultSet.next() : "Russian configuration should exist";
         connection.close();
     }
-
 
 }
