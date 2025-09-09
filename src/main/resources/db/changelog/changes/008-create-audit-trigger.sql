@@ -5,29 +5,20 @@
 
 -- Создание триггерной функции для аудита изменений постов
 CREATE OR REPLACE FUNCTION audit_posts_trigger_function()
-RETURNS TRIGGER AS '
+RETURNS TRIGGER AS
+$$
 DECLARE
-    change_details_text TEXT := '''';
-    user_id_val BIGINT := NULL;
+    change_details_text TEXT := '';
 BEGIN
-    -- Попытка извлечь user_id из контекста сессии (если установлен)
-    -- В реальном приложении это может быть установлено через application_name или custom variable
-    BEGIN
-        user_id_val := current_setting(''myapp.current_user_id'')::BIGINT;
-    EXCEPTION
-        WHEN OTHERS THEN
-            user_id_val := NULL;
-    END;
-
     -- Обработка INSERT
-    IF TG_OP = ''INSERT'' THEN
-        change_details_text := ''Создан новый пост'';
+    IF TG_OP = 'INSERT' THEN
+        change_details_text := 'Создан новый пост';
         
         INSERT INTO post_audit_log (
             post_id, operation, changed_at, user_id,
             new_title, new_content, new_is_published, change_details
         ) VALUES (
-            NEW.id, ''INSERT'', CURRENT_TIMESTAMP, user_id_val,
+            NEW.id, 'INSERT', CURRENT_TIMESTAMP, NEW.author_id,
             NEW.title, NEW.content, NEW.is_published, change_details_text
         );
         
@@ -35,24 +26,24 @@ BEGIN
     END IF;
 
     -- Обработка UPDATE
-    IF TG_OP = ''UPDATE'' THEN
+    IF TG_OP = 'UPDATE' THEN
         -- Формируем детальное описание изменений
-        change_details_text := ''Изменения: '';
+        change_details_text := 'Изменения: ';
         
         IF OLD.title != NEW.title THEN
-            change_details_text := change_details_text || ''заголовок; '';
+            change_details_text := change_details_text || 'заголовок; ';
         END IF;
         
         IF OLD.content != NEW.content THEN
-            change_details_text := change_details_text || ''содержимое; '';
+            change_details_text := change_details_text || 'содержимое; ';
         END IF;
         
         IF OLD.is_published != NEW.is_published THEN
-            change_details_text := change_details_text || ''статус публикации; '';
+            change_details_text := change_details_text || 'статус публикации; ';
         END IF;
         
         -- Удаляем последний "; "
-        change_details_text := RTRIM(change_details_text, ''; '');
+        change_details_text := RTRIM(change_details_text, '; ');
         
         -- Записываем в лог только если были реальные изменения в отслеживаемых полях
         IF OLD.title != NEW.title OR OLD.content != NEW.content OR OLD.is_published != NEW.is_published THEN
@@ -61,7 +52,7 @@ BEGIN
                 old_title, new_title, old_content, new_content,
                 old_is_published, new_is_published, change_details
             ) VALUES (
-                NEW.id, ''UPDATE'', CURRENT_TIMESTAMP, user_id_val,
+                NEW.id, 'UPDATE', CURRENT_TIMESTAMP, NEW.author_id,
                 OLD.title, NEW.title, OLD.content, NEW.content,
                 OLD.is_published, NEW.is_published, change_details_text
             );
@@ -71,14 +62,14 @@ BEGIN
     END IF;
 
     -- Обработка DELETE
-    IF TG_OP = ''DELETE'' THEN
-        change_details_text := ''Пост удален'';
+    IF TG_OP = 'DELETE' THEN
+        change_details_text := 'Пост удален';
         
         INSERT INTO post_audit_log (
             post_id, operation, changed_at, user_id,
             old_title, old_content, old_is_published, change_details
         ) VALUES (
-            OLD.id, ''DELETE'', CURRENT_TIMESTAMP, user_id_val,
+            OLD.id, 'DELETE', CURRENT_TIMESTAMP, OLD.author_id,
             OLD.title, OLD.content, OLD.is_published, change_details_text
         );
         
@@ -87,7 +78,8 @@ BEGIN
 
     RETURN NULL;
 END;
-' LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
+/
 
 --changeset myblog:008-create-audit-trigger
 --preconditions onFail:MARK_RAN

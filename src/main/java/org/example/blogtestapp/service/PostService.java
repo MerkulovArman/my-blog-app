@@ -6,11 +6,7 @@ import org.example.blogtestapp.dto.*;
 import org.example.blogtestapp.entity.Post;
 import org.example.blogtestapp.entity.Tag;
 import org.example.blogtestapp.entity.User;
-import org.example.blogtestapp.repository.PostRepository;
-import org.example.blogtestapp.repository.TagRepository;
-import org.example.blogtestapp.repository.UserRepository;
-import org.example.blogtestapp.repository.LikeRepository;
-import org.example.blogtestapp.repository.CommentRepository;
+import org.example.blogtestapp.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -230,6 +226,36 @@ public class PostService {
     }
 
     /**
+     * Получить статистику постов по темам (группировка)
+     */
+    @Transactional(readOnly = true)
+    public List<TopicStatisticsResponse> getTopicStatistics() {
+        List<Object[]> rawResults = postRepository.getTopicStatisticsRaw();
+        return rawResults.stream()
+                .map(this::mapRawDataToTopicStatistics)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Получить статистику активных пользователей за последние 10 дней
+     */
+    @Transactional(readOnly = true)
+    public List<ActiveUserStatisticsResponse> getActiveUsersStatistics() {
+        List<Object[]> rawResults = postRepository.getActiveUsersStatisticsRaw();
+        return rawResults.stream()
+                .map(row -> ActiveUserStatisticsResponse.builder()
+                        .username((String) row[0])
+                        .displayName((String) row[1])
+                        .postsCount(((Number) row[2]).longValue())
+                        .commentsCount(((Number) row[3]).longValue())
+                        .likesReceived(((Number) row[4]).longValue())
+                        .totalViews(((Number) row[5]).longValue())
+                        .activityScore(((Number) row[6]).doubleValue())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Обработка названий тегов
      */
     private Set<Tag> processTagNames(Set<String> tagNames) {
@@ -320,6 +346,28 @@ public class PostService {
                 .likesCount(likesCount)
                 .commentsCount(commentsCount)
                 .viewsCount(post.getViewsCount())
+                .build();
+    }
+
+    /**
+     * Маппинг сырых данных в TopicStatisticsResponse
+     */
+    private TopicStatisticsResponse mapRawDataToTopicStatistics(Object[] rawData) {
+        // Порядок полей в SQL запросе:
+        // t.name as topic, COUNT(DISTINCT p.id) as postsCount, 
+        // COALESCE(SUM(p.views_count), 0) as totalViews, 
+        // COALESCE(AVG(p.views_count), 0) as averageViews
+        
+        String topic = (String) rawData[0];
+        Long postsCount = ((Number) rawData[1]).longValue();
+        Long totalViews = ((Number) rawData[2]).longValue();
+        Double averageViews = ((Number) rawData[3]).doubleValue();
+
+        return TopicStatisticsResponse.builder()
+                .topic(topic)
+                .postsCount(postsCount)
+                .totalViews(totalViews)
+                .averageViews(averageViews)
                 .build();
     }
 }

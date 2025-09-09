@@ -1,6 +1,8 @@
 package org.example.blogtestapp.repository;
 
+import org.example.blogtestapp.dto.ActiveUserStatisticsResponse;
 import org.example.blogtestapp.entity.Post;
+import org.example.blogtestapp.entity.Tag;
 import org.example.blogtestapp.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -106,4 +108,37 @@ public interface PostRepository extends JpaRepository<Post, Long> {
            "AND p.id != :postId AND p.isPublished = true " +
            "ORDER BY p.publishedAt DESC")
     List<Post> findSimilarPosts(@Param("postId") Long postId, Pageable pageable);
+
+    /**
+     * Получить статистику постов по темам (группировка по тегам)
+     */
+    @Query(value = "SELECT " +
+           "t.name as topic, " +
+           "COUNT(DISTINCT p.id) as postsCount, " +
+           "COALESCE(SUM(p.views_count), 0) as totalViews, " +
+           "COALESCE(AVG(p.views_count), 0) as averageViews " +
+           "FROM tags t " +
+           "LEFT JOIN post_tags pt ON t.id = pt.tag_id " +
+           "LEFT JOIN posts p ON pt.post_id = p.id AND p.is_published = true " +
+           "WHERE t.is_active = true " +
+           "GROUP BY t.id, t.name " +
+           "ORDER BY postsCount DESC, totalViews DESC",
+           nativeQuery = true)
+    List<Object[]> getTopicStatisticsRaw();
+
+    /**
+     * Получить статистику активных пользователей из materialized view (raw)
+     */
+    @Query(value = "SELECT " +
+           "username, " +
+           "display_name, " +
+           "posts_count, " +
+           "comments_count, " +
+           "likes_received, " +
+           "total_views, " +
+           "activity_score " +
+           "FROM active_users_stats_mv " +
+           "ORDER BY activity_score DESC",
+           nativeQuery = true)
+    List<Object[]> getActiveUsersStatisticsRaw();
 }

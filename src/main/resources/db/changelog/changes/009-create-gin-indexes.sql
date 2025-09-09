@@ -8,20 +8,22 @@
 -- Индекс для tsvector поля (будет обновляться триггером)
 CREATE INDEX idx_posts_search_vector_gin ON posts USING gin(search_vector);
 
---changeset myblog:009-create-search-vector-function
+--changeset myblog:009-create-search-vector-function splitStatements:false endDelimiter:/
 --preconditions onFail:MARK_RAN
 --precondition-sql-check expectedResult:0 SELECT count(*) FROM information_schema.routines WHERE routine_name = 'update_posts_search_vector' AND routine_schema = current_schema()
 
 -- Создание функции для обновления search_vector поля
 CREATE OR REPLACE FUNCTION update_posts_search_vector()
-RETURNS TRIGGER AS '
+RETURNS TRIGGER AS
+$$
 BEGIN
     NEW.search_vector := 
-        setweight(to_tsvector(''russian'', COALESCE(NEW.title, '''')), ''A'') ||
-        setweight(to_tsvector(''russian'', COALESCE(NEW.content, '''')), ''B'');
+        setweight(to_tsvector('russian', COALESCE(NEW.title, '')), 'A') ||
+        setweight(to_tsvector('russian', COALESCE(NEW.content, '')), 'B');
     RETURN NEW;
 END;
-' LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
+/
 
 --changeset myblog:009-create-search-vector-trigger
 --preconditions onFail:MARK_RAN

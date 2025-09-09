@@ -1,5 +1,12 @@
 package org.example.blogtestapp.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +27,7 @@ import java.util.List;
 @RequestMapping("/users")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Users", description = "API для управления пользователями")
 public class UserController {
 
     private final UserService userService;
@@ -27,8 +35,17 @@ public class UserController {
     /**
      * Создать нового пользователя
      */
+    @Operation(summary = "Создать нового пользователя", description = "Создаёт нового пользователя в системе")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Пользователь успешно создан",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Невалидные данные", content = @Content),
+            @ApiResponse(responseCode = "409", description = "Пользователь с таким username уже существует", content = @Content)
+    })
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
+    public ResponseEntity<UserResponse> createUser(
+            @Parameter(description = "Данные для создания пользователя", required = true)
+            @Valid @RequestBody CreateUserRequest request) {
         log.info("Creating user with username: {}", request.getUsername());
         UserResponse response = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -37,8 +54,16 @@ public class UserController {
     /**
      * Получить пользователя по ID
      */
+    @Operation(summary = "Получить пользователя по ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Пользователь найден",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Пользователь не найден", content = @Content)
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserResponse> getUserById(
+            @Parameter(description = "ID пользователя", required = true, example = "1")
+            @PathVariable Long id) {
         return userService.getUserById(id)
                 .map(user -> ResponseEntity.ok(user))
                 .orElse(ResponseEntity.notFound().build());
@@ -87,6 +112,7 @@ public class UserController {
             userService.deactivateUser(id);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
+            log.error("Error while deactivating user: {}", e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }
