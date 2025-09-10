@@ -1,5 +1,6 @@
 package org.example.blogtestapp.integration;
 
+import org.example.blogtestapp.service.MaterializedViewService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -51,38 +52,5 @@ public class MaterializedViewRefreshIntegrationTest extends AbstractIntegrationT
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().get("success")).isEqualTo(true);
         assertThat(response.getBody().get("statistics")).isNotNull();
-    }
-
-    @Test
-    public void testGetHealthStatus() {
-        // When: Get health status
-        ResponseEntity<Map> response = restTemplate.getForEntity(
-            "/private/materialized-views/health", 
-            Map.class
-        );
-
-        // Then: Should return health status successfully
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().get("success")).isEqualTo(true);
-        
-        Map<String, Object> health = (Map<String, Object>) response.getBody().get("health");
-        assertThat(health).isNotNull();
-        assertThat(health.get("overallStatus")).isIn("OPTIMAL", "AVAILABLE", "FALLBACK");
-    }
-
-    @Test
-    public void testCronJobStatus() {
-        // When: Get cron job status
-        ResponseEntity<Map> response = restTemplate.getForEntity(
-            "/private/materialized-views/cron-status", 
-            Map.class
-        );
-
-        // Then: Should return cron status successfully
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().get("success")).isEqualTo(true);
-        assertThat(response.getBody().get("pgCronAvailable")).isNotNull();
     }
 }

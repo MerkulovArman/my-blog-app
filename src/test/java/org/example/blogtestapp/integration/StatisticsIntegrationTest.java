@@ -10,6 +10,7 @@ import org.example.blogtestapp.entity.Like;
 import org.example.blogtestapp.repository.TagRepository;
 import org.example.blogtestapp.repository.CommentRepository;
 import org.example.blogtestapp.repository.LikeRepository;
+import org.example.blogtestapp.service.MaterializedViewService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,9 @@ class StatisticsIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private LikeRepository likeRepository;
+
+    @Autowired
+    private MaterializedViewService materializedViewService;
 
     private User testUser1;
     private User testUser2;
@@ -192,6 +196,7 @@ class StatisticsIntegrationTest extends AbstractIntegrationTest {
     @Test
     void shouldGetActiveUserStatistics() {
         // When
+        materializedViewService.forceRefreshActiveUsersStatistics();
         ResponseEntity<List<ActiveUserStatisticsResponse>> response = restTemplate.exchange(
                 "/posts/statistics/active-users", HttpMethod.GET, null,
                 new ParameterizedTypeReference<List<ActiveUserStatisticsResponse>>() {});
@@ -242,6 +247,7 @@ class StatisticsIntegrationTest extends AbstractIntegrationTest {
         });
 
         // When
+        materializedViewService.forceRefreshActiveUsersStatistics();
         ResponseEntity<List<ActiveUserStatisticsResponse>> response = restTemplate.exchange(
                 "/posts/statistics/active-users", HttpMethod.GET, null,
                 new ParameterizedTypeReference<List<ActiveUserStatisticsResponse>>() {});

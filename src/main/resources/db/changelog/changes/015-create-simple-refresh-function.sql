@@ -1,7 +1,7 @@
 --liquibase formatted sql
 
 --changeset myblog:015-create-simple-refresh-function splitStatements:false endDelimiter:/
---comment: Create simple materialized view refresh function without dollar quoting
+--comment: Create simple materialized view refresh function
 
 -- Simple function to refresh materialized view (without complex error handling to avoid issues)
 CREATE OR REPLACE FUNCTION refresh_active_users_mv()
